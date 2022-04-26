@@ -1,6 +1,5 @@
 use clap::ArgMatches;
 use sea_orm_codegen::{EntityTransformer, OutputFile, WithSerde};
-use sqlx::pool::PoolOptions;
 use std::{error::Error, fmt::Display, fs, io::Write, path::Path, process::Command, str::FromStr};
 use url::Url;
 
@@ -25,7 +24,8 @@ pub async fn run_generate_command(matches: &ArgMatches<'_>) -> Result<(), Box<dy
             let max_connections = args
                 .value_of("MAX_CONNECTIONS")
                 .map(str::parse::<u32>)
-                .transpose()?;
+                .transpose()?
+                .unwrap();
 
             // The database should be a valid URL that can be parsed
             // protocol://username:password@host/database_name
@@ -105,9 +105,7 @@ pub async fn run_generate_command(matches: &ArgMatches<'_>) -> Result<(), Box<dy
                     use sea_schema::mysql::discovery::SchemaDiscovery;
                     use sqlx::MySql;
 
-                    let connection = pool_options::<MySql>(max_connections)
-                        .connect(url.as_str())
-                        .await?;
+                    let connection = connect::<MySql>(max_connections, url.as_str()).await?;
                     let schema_discovery = SchemaDiscovery::new(connection, database_name);
                     let schema = schema_discovery.discover().await;
                     schema
@@ -122,9 +120,7 @@ pub async fn run_generate_command(matches: &ArgMatches<'_>) -> Result<(), Box<dy
                     use sea_schema::sqlite::SchemaDiscovery;
                     use sqlx::Sqlite;
 
-                    let connection = pool_options::<Sqlite>(max_connections)
-                        .connect(url.as_str())
-                        .await?;
+                    let connection = connect::<Sqlite>(max_connections, url.as_str()).await?;
                     let schema_discovery = SchemaDiscovery::new(connection);
                     let schema = schema_discovery.discover().await?;
                     schema
@@ -140,9 +136,7 @@ pub async fn run_generate_command(matches: &ArgMatches<'_>) -> Result<(), Box<dy
                     use sqlx::Postgres;
 
                     let schema = args.value_of("DATABASE_SCHEMA").unwrap_or("public");
-                    let connection = pool_options::<Postgres>(max_connections)
-                        .connect(url.as_str())
-                        .await?;
+                    let connection = connect::<Postgres>(max_connections, url.as_str()).await?;
                     let schema_discovery = SchemaDiscovery::new(connection, schema);
                     let schema = schema_discovery.discover().await;
                     schema
@@ -182,15 +176,15 @@ pub async fn run_generate_command(matches: &ArgMatches<'_>) -> Result<(), Box<dy
     Ok(())
 }
 
-fn pool_options<DB>(max_connections: Option<u32>) -> PoolOptions<DB>
+async fn connect<DB>(max_connections: u32, url: &str) -> Result<sqlx::Pool<DB>, Box<dyn Error>>
 where
     DB: sqlx::Database,
 {
-    if let Some(max_cons) = max_connections {
-        PoolOptions::<DB>::new().max_connections(max_cons)
-    } else {
-        PoolOptions::<DB>::new()
-    }
+    sqlx::pool::PoolOptions::<DB>::new()
+        .max_connections(max_connections)
+        .connect(url)
+        .await
+        .map_err(Into::into)
 }
 
 pub fn run_migrate_command(matches: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {

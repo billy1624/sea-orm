@@ -76,6 +76,7 @@ pub fn build_cli() -> App<'static, 'static> {
                         .long("max-connections")
                         .help("The maximum amount of connections to use when connecting to the database.")
                         .takes_value(true)
+                        .default_value("1")
                 ),
         )
         .setting(AppSettings::SubcommandRequiredElseHelp);
