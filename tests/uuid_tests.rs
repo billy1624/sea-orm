@@ -16,6 +16,7 @@ async fn main() -> Result<(), DbErr> {
     create_tables(&ctx.db).await?;
     create_and_update_metadata(&ctx.db).await?;
     insert_metadata(&ctx.db).await?;
+    insert_many_metadata(&ctx.db).await?;
     ctx.delete().await;
 
     Ok(())
@@ -91,6 +92,27 @@ pub async fn create_and_update_metadata(db: &DatabaseConnection) -> Result<(), D
             "None of the database rows are affected".to_owned()
         ))
     );
+
+    Ok(())
+}
+
+pub async fn insert_many_metadata(db: &DatabaseConnection) -> Result<(), DbErr> {
+    let mut metadata = Vec::new();
+
+    for _ in 0..10 {
+        let am = metadata::ActiveModel {
+            uuid: Set(Uuid::new_v4()),
+            ty: Set("Type".to_owned()),
+            key: Set("markup".to_owned()),
+            value: Set("1.18".to_owned()),
+            bytes: Set(vec![1, 2, 3]),
+            date: Set(Some(Date::from_ymd(2021, 9, 27))),
+            time: Set(Some(Time::from_hms(11, 32, 55))),
+        };
+        metadata.push(am);
+    }
+
+    metadata::Entity::insert_many(metadata).exec(db).await?;
 
     Ok(())
 }
