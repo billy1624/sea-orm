@@ -378,6 +378,15 @@ where
     ::std::process::exit(1);
 }
 
+impl From<DateTimeCrate> for sea_orm_codegen::DateTimeCrate {
+    fn from(date_time_crate: DateTimeCrate) -> sea_orm_codegen::DateTimeCrate {
+        match date_time_crate {
+            DateTimeCrate::Chrono => sea_orm_codegen::DateTimeCrate::Chrono,
+            DateTimeCrate::Time => sea_orm_codegen::DateTimeCrate::Time,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use clap::StructOpt;
