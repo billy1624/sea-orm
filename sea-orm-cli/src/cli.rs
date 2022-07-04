@@ -1,5 +1,4 @@
 use clap::{ArgEnum, ArgGroup, Parser, Subcommand};
-use sea_orm_codegen::DateTimeCrate as CodegenDateTimeCrate;
 
 #[derive(Parser, Debug)]
 #[clap(version)]
@@ -173,13 +172,4 @@ pub enum GenerateSubcommands {
 pub enum DateTimeCrate {
     Chrono,
     Time,
-}
-
-impl From<DateTimeCrate> for CodegenDateTimeCrate {
-    fn from(date_time_crate: DateTimeCrate) -> CodegenDateTimeCrate {
-        match date_time_crate {
-            DateTimeCrate::Chrono => CodegenDateTimeCrate::Chrono,
-            DateTimeCrate::Time => CodegenDateTimeCrate::Time,
-        }
-    }
 }
