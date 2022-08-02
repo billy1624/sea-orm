@@ -1,0 +1,13 @@
+[workspace]
+# A separate workspace
+
+[package]
+name = "sea-orm-issues-654"
+version = "0.1.0"
+authors = []
+edition = "2021"
+publish = false
+
+[dependencies]
+tokio = { version = "1.20.0", features = ["rt-multi-thread", "macros"] }
+sqlx = { version = "^0.6", features = ["runtime-tokio-native-tls", "sqlite"] }
