@@ -581,21 +581,15 @@ impl EntityWriter {
             .iter()
             .map(|col| {
                 let mut attrs: Punctuated<_, Comma> = Punctuated::new();
-                let mut skip_pk_deserialization = false;
                 if !col.is_snake_case_name() {
                     let column_name = &col.name;
                     attrs.push(quote! { column_name = #column_name });
                 }
-                if primary_keys.contains(&col.name) {
+                let is_primary_key_col = primary_keys.contains(&col.name);
+                if is_primary_key_col {
                     attrs.push(quote! { primary_key });
                     if !col.auto_increment {
                         attrs.push(quote! { auto_increment = false });
-                    }
-
-                    // if deserialization with serde is even desired, set it to what the user
-                    // wants
-                    if with_serde == &WithSerde::Deserialize || with_serde == &WithSerde::Both {
-                        skip_pk_deserialization = skip_primary_key_deserialization;
                     }
                 }
                 if let Some(ts) = col.get_col_type_attrs() {
@@ -615,7 +609,13 @@ impl EntityWriter {
                         }
                         ts = quote! { #ts #attr };
                     }
-                    if skip_pk_deserialization {
+                    let has_serde_deserialize =
+                        with_serde == &WithSerde::Deserialize || with_serde == &WithSerde::Both;
+                    // Append `skip_deserialization` only when deserialization with serde is desired
+                    if is_primary_key_col
+                        && has_serde_deserialize
+                        && skip_primary_key_deserialization
+                    {
                         quote! {
                             #[sea_orm(#ts)]
                             #[serde(skip_deserialization)]
