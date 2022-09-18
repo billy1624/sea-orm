@@ -1,4 +1,6 @@
-use crate::{Column, ConjunctRelation, DateTimeCrate, PrimaryKey, Relation};
+use crate::{
+    util::escape_rust_keyword, Column, ConjunctRelation, DateTimeCrate, PrimaryKey, Relation,
+};
 use heck::{CamelCase, SnakeCase};
 use proc_macro2::{Ident, TokenStream};
 use quote::format_ident;
@@ -22,11 +24,11 @@ impl Entity {
     }
 
     pub fn get_table_name_snake_case_ident(&self) -> Ident {
-        format_ident!("{}", self.get_table_name_snake_case())
+        format_ident!("{}", escape_rust_keyword(self.get_table_name_snake_case()))
     }
 
     pub fn get_table_name_camel_case_ident(&self) -> Ident {
-        format_ident!("{}", self.get_table_name_camel_case())
+        format_ident!("{}", escape_rust_keyword(self.get_table_name_camel_case()))
     }
 
     pub fn get_column_names_snake_case(&self) -> Vec<Ident> {
