@@ -55,7 +55,8 @@ on:
   push:
     branches:
       - master
-      - 0.2.x
+      - 0.*.x
+      - pr/**
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref || github.run_id }}
