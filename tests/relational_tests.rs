@@ -4,7 +4,7 @@ pub use chrono::offset::Utc;
 pub use common::{bakery_chain::*, setup::*, TestContext};
 pub use rust_decimal::prelude::*;
 pub use rust_decimal_macros::dec;
-pub use sea_orm::{entity::*, query::*, DbErr, FromQueryResult};
+pub use sea_orm::{entity::*, query::*, DbErr, FromQueryResult, sea_query::Expr};
 pub use uuid::Uuid;
 
 // Run the test locally:
@@ -63,6 +63,7 @@ pub async fn left_join() {
         .select_only()
         .column(baker::Column::Name)
         .column_as(bakery::Column::Name, "bakery_name")
+        .column_as(Expr::cust("problematic_expr"), " ")
         .filter(baker::Column::Name.contains("Baker 1"));
 
     let result = select
